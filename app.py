@@ -8,9 +8,6 @@ from PIL import Image
 import tensorflow as tf
 from tensorflow.keras.layers import TFSMLayer
 
-# =========================
-# Streamlit Page Settings
-# =========================
 st.set_page_config(
     page_title="COVID-19 X-ray Detection (CNN)",
     layout="centered"
@@ -23,9 +20,8 @@ st.write(
     "**Covid**, **Normal**, or **Viral Pneumonia**"
 )
 
-# =========================
-# Model Download (SavedModel)
-# =========================
+import gdown
+
 MODEL_ZIP = "covid_savedmodel.zip"
 MODEL_DIR = "covid_savedmodel"
 GDRIVE_ID = "1mNMBMzvrAPl2eah0No_fd9Rbk16kC_j-"
@@ -33,21 +29,15 @@ GDRIVE_ID = "1mNMBMzvrAPl2eah0No_fd9Rbk16kC_j-"
 def download_model():
     if not os.path.exists(MODEL_DIR):
         with st.spinner("Downloading model (first-time setup)..."):
-            url = f"https://drive.google.com/uc?id={GDRIVE_ID}&export=download"
-            r = requests.get(url)
-            with open(MODEL_ZIP, "wb") as f:
-                f.write(r.content)
+            url = f"https://drive.google.com/uc?id={GDRIVE_ID}"
+            gdown.download(url, MODEL_ZIP, quiet=False)
 
             with zipfile.ZipFile(MODEL_ZIP, "r") as zip_ref:
                 zip_ref.extractall(".")
 
-            st.success("Model downloaded and extracted.")
+            st.success("Model downloaded and extracted successfully.")
 
-download_model()
 
-# =========================
-# Load Model + Class Names
-# =========================
 @st.cache_resource
 def load_artifacts():
     model = tf.keras.Sequential([
@@ -61,9 +51,6 @@ model, class_names = load_artifacts()
 
 IMG_SIZE = 128
 
-# =========================
-# Image Preprocessing
-# =========================
 def preprocess_image(image):
     image = image.convert("L")
     image = image.resize((IMG_SIZE, IMG_SIZE))
@@ -72,9 +59,6 @@ def preprocess_image(image):
     img_array = np.expand_dims(img_array, axis=0)
     return img_array
 
-# =========================
-# File Upload + Prediction
-# =========================
 uploaded_file = st.file_uploader(
     "Upload Chest X-ray Image",
     type=["jpg", "jpeg", "png"]
