@@ -3,3 +3,4 @@ tensorflow==2.20.0
 numpy>=1.23
 pillow>=9.0
 requests
+gdown
