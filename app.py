@@ -100,8 +100,8 @@ else:
 
 st.markdown("---")
 st.caption(
-    "Thank you for using my App |
-    "Streamlit App by Ayush Anand (IITG Course)"
+    "Thank you for visiting."
 )
+
 
 
