@@ -1,6 +1,8 @@
 import streamlit as st
 import numpy as np
 import json
+import os
+import urllib.request
 from PIL import Image
 from tensorflow.keras.models import load_model
 
@@ -76,4 +78,5 @@ st.markdown("---")
 st.caption(
     "Model: VGG16 (Transfer Learning) | "
     "Streamlit App by Ayush Anand (IITG Course)")
+
 
