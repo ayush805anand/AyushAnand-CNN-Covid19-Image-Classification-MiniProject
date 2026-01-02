@@ -2,83 +2,121 @@ import streamlit as st
 import numpy as np
 import json
 import os
-import urllib.request
+import zipfile
+import requests
 from PIL import Image
-from tensorflow.keras.models import load_model
+import tensorflow as tf
+from tensorflow.keras.layers import TFSMLayer
 
+# =========================
+# Streamlit Page Settings
+# =========================
 st.set_page_config(
     page_title="COVID-19 X-ray Detection (CNN)",
-    layout="centered")
+    layout="centered"
+)
 
 st.title("COVID-19 Detection from Chest X-rays")
+st.write("Made by Ayush Anand – CNN Mini-Project")
 st.write(
-    "Made by Ayush Anand - CNN Mini-Project")
-st.write(
-    "Upload a chest X-ray image to classify it as **Covid**, "
-    "**Normal**, or **Viral Pneumonia**")
+    "Upload a chest X-ray image to classify it as "
+    "**Covid**, **Normal**, or **Viral Pneumonia**"
+)
 
-MODEL_URL = "https://drive.google.com/uc?id=1XC9jvNTvpy4mPCIhWldbHZgokvTDOVnd&export=download"
-MODEL_PATH = "covid_xray_vgg16.keras"
+# =========================
+# Model Download (SavedModel)
+# =========================
+MODEL_ZIP = "covid_savedmodel.zip"
+MODEL_DIR = "covid_savedmodel"
+GDRIVE_ID = "1mNMBMzvrAPl2eah0No_fd9Rbk16kC_j-"
 
 def download_model():
-    if not os.path.exists(MODEL_PATH):
+    if not os.path.exists(MODEL_DIR):
         with st.spinner("Downloading model (first-time setup)..."):
-            urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
-            st.success("Model downloaded successfully.")
+            url = f"https://drive.google.com/uc?id={GDRIVE_ID}&export=download"
+            r = requests.get(url)
+            with open(MODEL_ZIP, "wb") as f:
+                f.write(r.content)
+
+            with zipfile.ZipFile(MODEL_ZIP, "r") as zip_ref:
+                zip_ref.extractall(".")
+
+            st.success("Model downloaded and extracted.")
 
 download_model()
 
+# =========================
+# Load Model + Class Names
+# =========================
 @st.cache_resource
 def load_artifacts():
-    model = load_model(MODEL_PATH, compile=False)
+    model = tf.keras.Sequential([
+        TFSMLayer(MODEL_DIR, call_endpoint="serve")
+    ])
     with open("class_names.json") as f:
         class_names = json.load(f)
     return model, class_names
 
 model, class_names = load_artifacts()
-IMG_SIZE = 128  
 
+IMG_SIZE = 128
+
+# =========================
+# Image Preprocessing
+# =========================
 def preprocess_image(image):
     image = image.convert("L")
     image = image.resize((IMG_SIZE, IMG_SIZE))
-    img_array = np.array(image).astype(np.float32)
-    img_array = img_array / 255.0
+    img_array = np.array(image).astype(np.float32) / 255.0
     img_array = np.stack([img_array] * 3, axis=-1)
     img_array = np.expand_dims(img_array, axis=0)
     return img_array
 
+# =========================
+# File Upload + Prediction
+# =========================
 uploaded_file = st.file_uploader(
     "Upload Chest X-ray Image",
-    type=["jpg", "jpeg", "png"])
+    type=["jpg", "jpeg", "png"]
+)
 
 if uploaded_file is not None:
     image = Image.open(uploaded_file)
+
     st.subheader("Uploaded Image")
     st.image(image, use_container_width=True)
+
     input_tensor = preprocess_image(image)
     predictions = model.predict(input_tensor, verbose=0)[0]
+
     top_indices = predictions.argsort()[-2:][::-1]
+
     primary_class = class_names[top_indices[0]]
     primary_conf = predictions[top_indices[0]] * 100
+
     secondary_class = class_names[top_indices[1]]
     secondary_conf = predictions[top_indices[1]] * 100
+
     st.subheader("Prediction Result")
     st.success(f"**Primary Prediction:** {primary_class}")
     st.info(f"**Confidence:** {primary_conf:.2f}%")
+
     st.warning(
         f"**Second Likely Class:** {secondary_class} "
-        f"({secondary_conf:.2f}%)")
+        f"({secondary_conf:.2f}%)"
+    )
+
     if primary_conf < 60:
         st.error(
             "Low confidence prediction. "
-            "Further clinical evaluation is recommended.")
+            "Further clinical evaluation is recommended."
+        )
+
 else:
     st.warning("Please upload a chest X-ray image to get a prediction.")
 
 st.markdown("---")
 st.caption(
     "Model: VGG16 (Transfer Learning) | "
-    "Streamlit App by Ayush Anand (IITG Course)")
-
-
-
+    "Streamlit App by Ayush Anand (IITG Course)"
+)
