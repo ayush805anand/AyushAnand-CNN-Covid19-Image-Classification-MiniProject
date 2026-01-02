@@ -15,6 +15,17 @@ st.write(
     "Upload a chest X-ray image to classify it as **Covid**, "
     "**Normal**, or **Viral Pneumonia**")
 
+MODEL_URL = "https://drive.google.com/uc?id=1XC9jvNTvpy4mPCIhWldbHZgokvTDOVnd&export=download"
+MODEL_PATH = "covid_xray_vgg16.keras"
+
+def download_model():
+    if not os.path.exists(MODEL_PATH):
+        with st.spinner("Downloading model (first-time setup)..."):
+            urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
+            st.success("Model downloaded successfully.")
+
+download_model()
+
 @st.cache_resource
 def load_artifacts():
     model = load_model("covid_xray_vgg16.keras")
@@ -65,3 +76,4 @@ st.markdown("---")
 st.caption(
     "Model: VGG16 (Transfer Learning) | "
     "Streamlit App by Ayush Anand (IITG Course)")
+
