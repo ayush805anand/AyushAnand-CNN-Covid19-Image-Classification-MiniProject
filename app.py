@@ -30,10 +30,11 @@ download_model()
 
 @st.cache_resource
 def load_artifacts():
-    model = load_model("covid_xray_vgg16.keras")
+    model = load_model(MODEL_PATH, compile=False)
     with open("class_names.json") as f:
         class_names = json.load(f)
     return model, class_names
+
 model, class_names = load_artifacts()
 IMG_SIZE = 128  
 
@@ -78,5 +79,6 @@ st.markdown("---")
 st.caption(
     "Model: VGG16 (Transfer Learning) | "
     "Streamlit App by Ayush Anand (IITG Course)")
+
 
 
