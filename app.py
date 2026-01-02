@@ -3,7 +3,7 @@ import numpy as np
 import json
 import os
 import zipfile
-import requests
+import gdown
 from PIL import Image
 import tensorflow as tf
 from tensorflow.keras.layers import TFSMLayer
@@ -20,8 +20,6 @@ st.write(
     "**Covid**, **Normal**, or **Viral Pneumonia**"
 )
 
-import gdown
-
 MODEL_ZIP = "covid_savedmodel.zip"
 MODEL_DIR = "covid_savedmodel"
 GDRIVE_ID = "1mNMBMzvrAPl2eah0No_fd9Rbk16kC_j-"
@@ -37,6 +35,7 @@ def download_model():
 
             st.success("Model downloaded and extracted successfully.")
 
+download_model()
 
 @st.cache_resource
 def load_artifacts():
