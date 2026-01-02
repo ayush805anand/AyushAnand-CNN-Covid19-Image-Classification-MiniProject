@@ -1,9 +1,5 @@
-tensorflow>=2.16.0
 streamlit>=1.30.0
+tensorflow==2.20.0
 numpy>=1.23
 pillow>=9.0
-scikit-learn>=1.2
-matplotlib>=3.6
-seaborn>=0.12
-keras-tuner>=1.4.6
-pyngrok>=7.0.0
+requests
